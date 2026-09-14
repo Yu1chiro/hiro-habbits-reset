@@ -1,0 +1,1009 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#eaf1df" />
+  <title>Little Forest — Habit Garden</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            forest: "#405c48",
+            moss: "#71896c",
+            sage: "#b9cbb0",
+            mist: "#eaf1df",
+            cream: "#faf8ef",
+            bark: "#806e57",
+            peach: "#f1c9ad",
+            butter: "#f2e5a9"
+          },
+          fontFamily: {
+            sans: ["Nunito", "Trebuchet MS", "sans-serif"]
+          }
+        }
+      }
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --forest: #405c48;
+      --moss: #71896c;
+      --sage: #b9cbb0;
+      --mist: #eaf1df;
+      --cream: #faf8ef;
+      --bark: #806e57;
+      --line: #dce5d4;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: #354b3b;
+      background:
+        radial-gradient(ellipse at 8% 5%, rgba(255,255,255,.8), transparent 35%),
+        radial-gradient(ellipse at 95% 20%, rgba(198,218,183,.35), transparent 30%),
+        linear-gradient(145deg, #edf3e4 0%, #e6efdf 45%, #f5f1e4 100%);
+      font-family: "Nunito", "Trebuchet MS", sans-serif;
+      min-height: 100vh;
+    }
+
+    button, input, textarea, select { font: inherit; }
+    button { cursor: pointer; }
+    button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+      outline: 3px solid #9dbd91;
+      outline-offset: 3px;
+    }
+
+    .app-shell { max-width: 1440px; margin: auto; padding: 22px; }
+    .forest-card {
+      background: rgba(255, 255, 248, .82);
+      border: 1px solid rgba(210, 224, 201, .9);
+      box-shadow: 0 10px 30px rgba(70, 94, 66, .07);
+      border-radius: 25px;
+      backdrop-filter: blur(8px);
+    }
+    .soft-card {
+      background: rgba(238, 245, 230, .78);
+      border: 1px solid #dce7d3;
+      border-radius: 20px;
+    }
+    .nav-button {
+      display: flex; align-items: center; gap: 12px;
+      width: 100%; padding: 12px 14px; border-radius: 15px;
+      color: #6b8068; font-weight: 800; text-align: left;
+      transition: background .18s, color .18s, transform .18s;
+    }
+    .nav-button:hover { background: #edf3e7; transform: translateX(2px); }
+    .nav-button.active { color: white; background: var(--forest); box-shadow: 0 7px 15px #405c4820; }
+    .nav-button i { width: 20px; text-align: center; }
+    .view { display: none; animation: appear .24s ease-out; }
+    .view.active { display: block; }
+    @keyframes appear { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+
+    .hero {
+      position: relative; overflow: hidden;
+      background: linear-gradient(115deg, #dce9d1 0%, #edf2df 53%, #f7e9d4 100%);
+      border: 1px solid #d3e1c8;
+    }
+    .hero::before, .hero::after {
+      content: ""; position: absolute; border-radius: 999px; pointer-events: none;
+      background: rgba(255,255,255,.38);
+    }
+    .hero::before { width: 230px; height: 230px; right: 7%; top: -130px; }
+    .hero::after { width: 170px; height: 170px; right: 28%; bottom: -125px; }
+    .hero-art { position: absolute; right: 22px; bottom: 12px; font-size: clamp(58px, 8vw, 100px); opacity: .8; transform: rotate(-7deg); }
+    .eyebrow { color: #74896b; text-transform: uppercase; letter-spacing: .14em; font-size: 11px; font-weight: 900; }
+    .section-title { font-size: 1.2rem; font-weight: 900; color: #405c48; }
+    .muted { color: #80917b; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 7px; border-radius: 999px;
+      padding: 7px 11px; background: #e8f0df; color: #5b7757; font-size: 12px; font-weight: 800;
+    }
+    .primary-btn {
+      border: 0; border-radius: 14px; padding: 11px 16px; background: var(--forest);
+      color: white; font-weight: 900; transition: transform .15s, background .15s;
+    }
+    .primary-btn:hover { background: #304a38; transform: translateY(-1px); }
+    .secondary-btn {
+      border: 1px solid #d4e0cc; border-radius: 14px; padding: 10px 14px;
+      color: #557052; background: #f7f9f1; font-weight: 800;
+    }
+    .secondary-btn:hover { background: #eaf1e3; }
+    .habit-row {
+      display: flex; align-items: center; gap: 13px; padding: 13px;
+      border: 1px solid #e2e9da; border-radius: 17px; background: rgba(255,255,255,.7);
+      transition: border .15s, background .15s;
+    }
+    .habit-row.done { background: #edf4e8; border-color: #c8dbc0; }
+    .habit-check {
+      display: grid; place-items: center; flex: 0 0 27px; width: 27px; height: 27px;
+      border-radius: 9px; border: 2px solid #c3d3b9; background: #fffef8; color: transparent;
+    }
+    .habit-row.done .habit-check { color: white; background: #789570; border-color: #789570; }
+    .habit-row.done .habit-name { color: #82927b; text-decoration: line-through; }
+    .habit-name { font-weight: 800; color: #496149; }
+    .habit-note { font-size: 12px; color: #8a9a83; }
+    .progress-track { height: 11px; background: #e5ecde; border-radius: 999px; overflow: hidden; }
+    .progress-fill { height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, #8fae81, #587b5a); transition: width .3s ease; }
+    .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 7px; }
+    .calendar-day {
+      min-height: 66px; border: 1px solid #e1e9da; background: #fffef8;
+      border-radius: 13px; padding: 8px; color: #63785e; text-align: left;
+    }
+    .calendar-day:hover { border-color: #a8c29b; background: #f0f5e9; }
+    .calendar-day.selected { border: 2px solid #789570; background: #eaf2e3; padding: 7px; }
+    .calendar-day.today { box-shadow: inset 0 0 0 1px #b4cba8; }
+    .calendar-day .day-number { font-weight: 900; font-size: 13px; }
+    .calendar-day .day-mark { font-size: 10px; margin-top: 6px; color: #789570; }
+    .calendar-day.outside { opacity: .35; }
+    .stat-number { font-size: clamp(24px, 4vw, 34px); font-weight: 900; line-height: 1.1; color: #405c48; }
+    .field {
+      width: 100%; border: 1px solid #dce6d4; background: #fffef9; color: #405c48;
+      border-radius: 13px; padding: 11px 13px;
+    }
+    .field::placeholder { color: #a1ad99; }
+    .toast {
+      position: fixed; right: 20px; bottom: 20px; z-index: 50; max-width: min(360px, calc(100vw - 40px));
+      padding: 13px 17px; border-radius: 15px; color: white; background: #405c48;
+      box-shadow: 0 10px 30px #304a3830; font-weight: 800; opacity: 0; transform: translateY(12px);
+      pointer-events: none; transition: .22s;
+    }
+    .toast.show { opacity: 1; transform: none; }
+    .mini-bar { flex: 1; min-width: 0; background: #e8eee1; border-radius: 8px 8px 3px 3px; overflow: hidden; display: flex; align-items: end; }
+    .mini-bar > span { display: block; width: 100%; background: linear-gradient(#a8c49b, #6f916b); border-radius: inherit; min-height: 3px; }
+    .leaf-divider { height: 1px; background: linear-gradient(90deg, transparent, #d9e5d0, transparent); }
+    .mobile-nav { display: none; }
+    @media (max-width: 900px) {
+      .app-shell { padding: 12px; }
+      .desktop-sidebar { display: none; }
+      .mobile-nav { display: flex; }
+      .hero-art { opacity: .35; right: 10px; }
+    }
+    @media (max-width: 520px) {
+      .app-shell { padding: 9px; }
+      .forest-card { border-radius: 20px; }
+      .calendar-grid { gap: 4px; }
+      .calendar-day { min-height: 52px; padding: 5px; border-radius: 10px; }
+      .calendar-day.selected { padding: 4px; }
+      .calendar-day .day-mark { font-size: 9px; }
+      .hero-art { display: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app-shell">
+    <div class="grid grid-cols-1 lg:grid-cols-[245px_minmax(0,1fr)] gap-5">
+
+      <!-- Sidebar -->
+      <aside class="desktop-sidebar forest-card p-5 h-fit lg:sticky lg:top-5">
+        <div class="flex items-center gap-3 mb-8">
+          <div class="w-12 h-12 rounded-2xl bg-[#e3edd9] grid place-items-center text-2xl">🌱</div>
+          <div>
+            <div class="font-black text-xl text-forest leading-tight">Little Forest</div>
+            <div class="text-xs muted font-bold">your tiny habit garden</div>
+          </div>
+        </div>
+
+        <div class="eyebrow mb-3 px-3">Garden menu</div>
+        <nav class="space-y-1" aria-label="Navigasi utama">
+          <button class="nav-button active" data-view="today"><i class="fa-solid fa-seedling"></i>Hari ini</button>
+          <button class="nav-button" data-view="calendar"><i class="fa-regular fa-calendar"></i>Kalender</button>
+          <button class="nav-button" data-view="stats"><i class="fa-solid fa-chart-simple"></i>Statistik</button>
+          <button class="nav-button" data-view="reflection"><i class="fa-regular fa-bookmark"></i>Jurnal kecil</button>
+          <button class="nav-button" data-view="settings"><i class="fa-solid fa-sliders"></i>Pengaturan</button>
+        </nav>
+
+        <div class="soft-card p-4 mt-8">
+          <div class="text-2xl mb-2">🍃</div>
+          <p class="font-black text-sm text-forest">Pelan-pelan juga tumbuh.</p>
+          <p class="text-xs muted mt-1 leading-relaxed">Kamu tidak harus sempurna setiap hari. Cukup kembali dan mulai lagi.</p>
+        </div>
+        <div class="text-xs muted font-bold mt-5 text-center">Data tersimpan di browser ini</div>
+      </aside>
+
+      <!-- Main content -->
+      <main class="min-w-0">
+        <header class="flex flex-wrap items-center justify-between gap-3 mb-5 px-1">
+          <div>
+            <div class="eyebrow">A little space to grow</div>
+            <h1 class="text-2xl sm:text-3xl font-black text-forest">Habit Garden <span class="text-xl">🌿</span></h1>
+          </div>
+          <div class="pill"><i class="fa-regular fa-clock"></i><span id="clock">WITA</span></div>
+        </header>
+
+        <!-- Today -->
+        <section class="view active" id="view-today">
+          <div class="hero forest-card p-6 sm:p-8 mb-5">
+            <div class="relative z-10 max-w-xl">
+              <div class="pill bg-white/70 mb-4"><i class="fa-solid fa-sun"></i><span id="today-label">Hari ini</span></div>
+              <h2 class="text-2xl sm:text-3xl font-black text-forest leading-tight">Satu langkah kecil,<br />satu tunas baru.</h2>
+              <p class="mt-3 text-sm sm:text-base text-[#657c5e] max-w-md">Rawat kebiasaanmu dengan tenang. Tidak perlu terburu-buru—yang penting terus belajar dan bertumbuh.</p>
+              <div class="mt-5 flex flex-wrap items-center gap-3">
+                <button class="primary-btn" id="go-checklist"><i class="fa-solid fa-leaf mr-2"></i>Mulai checklist</button>
+                <span class="text-xs font-extrabold text-[#74896b]">🌼 Hari baru, kesempatan baru</span>
+              </div>
+            </div>
+            <div class="hero-art" aria-hidden="true">🌳</div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-5">
+            <div class="forest-card p-5">
+              <div class="flex items-center justify-between mb-3"><span class="eyebrow">Progress hari ini</span><span>🌱</span></div>
+              <div class="stat-number"><span id="today-percent">0</span><span class="text-lg">%</span></div>
+              <div class="progress-track mt-3"><div class="progress-fill" id="today-progress"></div></div>
+              <div class="text-xs muted mt-2" id="today-count">0 dari 0 kebiasaan</div>
+            </div>
+            <div class="forest-card p-5">
+              <div class="flex items-center justify-between mb-3"><span class="eyebrow">Ritme bertumbuh</span><span>🍄</span></div>
+              <div class="stat-number"><span id="streak-number">0</span><span class="text-lg ml-1">hari</span></div>
+              <div class="text-xs muted mt-2">Hari beruntun dengan checklist lengkap</div>
+            </div>
+            <div class="forest-card p-5">
+              <div class="flex items-center justify-between mb-3"><span class="eyebrow">Sisa hari program</span><span>🪴</span></div>
+              <div class="stat-number" id="days-left">30</div>
+              <div class="text-xs muted mt-2" id="program-date">Program 30 hari</div>
+            </div>
+          </div>
+
+          <div class="forest-card p-5 sm:p-6 mb-5" id="checklist-card">
+            <div class="flex flex-wrap justify-between items-start gap-3 mb-5">
+              <div>
+                <div class="eyebrow mb-1">Daily care</div>
+                <h2 class="section-title">Checklist kebiasaan</h2>
+                <p class="text-sm muted mt-1">Tandai setelah kamu melakukannya.</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <input type="date" id="selected-date" class="field !w-auto !py-2 text-sm" aria-label="Pilih tanggal checklist" />
+                <button class="secondary-btn !px-3 !py-2" id="jump-today" title="Kembali ke hari ini"><i class="fa-solid fa-calendar-day"></i></button>
+              </div>
+            </div>
+            <div class="space-y-2" id="habit-list"></div>
+            <div class="leaf-divider my-5"></div>
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <p class="text-sm font-extrabold text-[#71866b]" id="encouragement">Setiap usaha kecil tetap berarti 🌱</p>
+              <button class="secondary-btn" id="reset-day"><i class="fa-solid fa-rotate-left mr-2"></i>Reset hari ini</button>
+            </div>
+          </div>
+
+          <div class="forest-card p-5 sm:p-6">
+            <div class="flex items-center justify-between gap-3 mb-4">
+              <div>
+                <div class="eyebrow mb-1">Daily reflection</div>
+                <h2 class="section-title">Catatan hari ini</h2>
+              </div>
+              <span class="text-2xl">📖</span>
+            </div>
+            <label for="quick-reflection" class="text-sm font-bold text-[#71866b]">Apa satu hal yang kamu pelajari hari ini?</label>
+            <textarea id="quick-reflection" rows="3" class="field mt-2 resize-y" placeholder="Tulis singkat saja, tidak harus sempurna..."></textarea>
+            <div class="flex flex-wrap items-center justify-between gap-3 mt-3">
+              <span class="text-xs muted">Catatan tersimpan otomatis saat disimpan.</span>
+              <button class="primary-btn" id="save-reflection"><i class="fa-solid fa-feather-pointed mr-2"></i>Simpan catatan</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Calendar -->
+        <section class="view" id="view-calendar">
+          <div class="forest-card p-5 sm:p-6">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+              <div>
+                <div class="eyebrow mb-1">A map of your growth</div>
+                <h2 class="section-title">Kalender kebiasaan</h2>
+                <p class="text-sm muted mt-1">Pilih tanggal untuk melihat atau mengubah checklist.</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <button class="secondary-btn !px-3" id="prev-month" aria-label="Bulan sebelumnya"><i class="fa-solid fa-chevron-left"></i></button>
+                <div class="font-black text-forest min-w-[125px] text-center" id="month-label">Bulan</div>
+                <button class="secondary-btn !px-3" id="next-month" aria-label="Bulan berikutnya"><i class="fa-solid fa-chevron-right"></i></button>
+              </div>
+            </div>
+            <div class="calendar-grid mb-2 text-center text-xs font-black text-[#91a18a]">
+              <div>Min</div><div>Sen</div><div>Sel</div><div>Rab</div><div>Kam</div><div>Jum</div><div>Sab</div>
+            </div>
+            <div class="calendar-grid" id="calendar-grid"></div>
+            <div class="flex flex-wrap gap-3 mt-5 text-xs font-bold text-[#80917b]">
+              <span><i class="fa-solid fa-circle text-[#8eae80] mr-1"></i>Checklist lengkap</span>
+              <span><i class="fa-regular fa-circle text-[#c7d5bd] mr-1"></i>Belum lengkap</span>
+              <span><i class="fa-solid fa-leaf text-[#587b5a] mr-1"></i>Tanggal dipilih</span>
+            </div>
+          </div>
+          <div class="forest-card p-5 mt-4">
+            <div class="flex flex-wrap justify-between items-center gap-2 mb-3">
+              <div>
+                <div class="eyebrow">Selected day</div>
+                <h3 class="font-black text-forest" id="calendar-selected-label">Pilih tanggal</h3>
+              </div>
+              <span class="pill" id="calendar-selected-progress">0%</span>
+            </div>
+            <div class="progress-track"><div class="progress-fill" id="calendar-selected-bar"></div></div>
+            <button class="primary-btn mt-4" id="open-selected-day">Buka checklist tanggal ini</button>
+          </div>
+        </section>
+
+        <!-- Stats -->
+        <section class="view" id="view-stats">
+          <div class="forest-card p-5 sm:p-6 mb-5">
+            <div class="eyebrow mb-1">Your little milestones</div>
+            <h2 class="section-title">Statistik pertumbuhan</h2>
+            <p class="text-sm muted mt-1">Lihat konsistensi, bukan kesempurnaan.</p>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-5">
+              <div class="soft-card p-4"><div class="text-xl mb-2">🌱</div><div class="stat-number" id="stat-completed">0</div><div class="text-xs muted font-bold mt-1">Checklist selesai</div></div>
+              <div class="soft-card p-4"><div class="text-xl mb-2">🌼</div><div class="stat-number" id="stat-rate">0%</div><div class="text-xs muted font-bold mt-1">Rata-rata harian</div></div>
+              <div class="soft-card p-4"><div class="text-xl mb-2">🍃</div><div class="stat-number" id="stat-active">0</div><div class="text-xs muted font-bold mt-1">Hari aktif</div></div>
+              <div class="soft-card p-4"><div class="text-xl mb-2">🌳</div><div class="stat-number" id="stat-best">0</div><div class="text-xs muted font-bold mt-1">Rekor beruntun</div></div>
+            </div>
+          </div>
+
+          <div class="forest-card p-5 sm:p-6 mb-5">
+            <div class="flex items-center justify-between gap-3 mb-4">
+              <div><div class="eyebrow mb-1">Last 7 days</div><h3 class="section-title">Ritme mingguan</h3></div>
+              <span class="text-2xl">🌤️</span>
+            </div>
+            <div class="flex items-end gap-2 h-40" id="weekly-chart" aria-label="Grafik progress tujuh hari terakhir"></div>
+            <div class="text-xs muted mt-3">Tinggi batang menunjukkan persentase checklist yang selesai.</div>
+          </div>
+
+          <div class="forest-card p-5 sm:p-6">
+            <div class="eyebrow mb-1">Habit by habit</div>
+            <h3 class="section-title mb-4">Kebiasaan yang dirawat</h3>
+            <div class="space-y-4" id="habit-stats"></div>
+          </div>
+        </section>
+
+        <!-- Reflection journal -->
+        <section class="view" id="view-reflection">
+          <div class="forest-card p-5 sm:p-6 mb-5">
+            <div class="eyebrow mb-1">A quiet corner</div>
+            <h2 class="section-title">Jurnal kecil</h2>
+            <p class="text-sm muted mt-1">Simpan pemikiran, pelajaran, atau hal sederhana yang ingin kamu ingat.</p>
+            <div class="mt-5 grid gap-3">
+              <label class="text-sm font-extrabold text-[#71866b]" for="journal-date">Tanggal</label>
+              <input type="date" id="journal-date" class="field" />
+              <label class="text-sm font-extrabold text-[#71866b]" for="journal-text">Catatan</label>
+              <textarea id="journal-text" rows="5" class="field resize-y" placeholder="Hari ini aku menyadari..."></textarea>
+              <div class="flex flex-wrap gap-2">
+                <button class="primary-btn" id="save-journal"><i class="fa-solid fa-bookmark mr-2"></i>Simpan jurnal</button>
+                <button class="secondary-btn" id="clear-journal-form">Bersihkan kolom</button>
+              </div>
+            </div>
+          </div>
+          <div class="forest-card p-5 sm:p-6">
+            <div class="flex items-center justify-between gap-3 mb-4">
+              <h3 class="section-title">Jejak catatan</h3>
+              <span class="pill" id="journal-count">0 catatan</span>
+            </div>
+            <div class="space-y-3" id="journal-history"></div>
+          </div>
+        </section>
+
+        <!-- Settings -->
+        <section class="view" id="view-settings">
+          <div class="forest-card p-5 sm:p-6 mb-5">
+            <div class="eyebrow mb-1">Make it yours</div>
+            <h2 class="section-title">Pengaturan program</h2>
+            <p class="text-sm muted mt-1">Atur tanggal mulai dan durasi program kebiasaanmu.</p>
+            <div class="grid sm:grid-cols-2 gap-4 mt-5">
+              <div><label class="text-sm font-extrabold text-[#71866b] block mb-2" for="start-date">Tanggal mulai</label><input class="field" type="date" id="start-date" /></div>
+              <div><label class="text-sm font-extrabold text-[#71866b] block mb-2" for="program-days">Durasi program (hari)</label><input class="field" type="number" min="1" max="365" id="program-days" /></div>
+            </div>
+            <button class="primary-btn mt-4" id="save-program"><i class="fa-solid fa-check mr-2"></i>Simpan program</button>
+          </div>
+
+          <div class="forest-card p-5 sm:p-6 mb-5">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+              <div><div class="eyebrow mb-1">Your daily seeds</div><h3 class="section-title">Kelola kebiasaan</h3></div>
+              <button class="secondary-btn" id="add-habit"><i class="fa-solid fa-plus mr-2"></i>Tambah</button>
+            </div>
+            <form id="habit-form" class="soft-card p-4 mb-4 hidden">
+              <label class="text-sm font-extrabold text-[#71866b] block mb-2" for="new-habit-name">Nama kebiasaan</label>
+              <input class="field" id="new-habit-name" maxlength="80" placeholder="Contoh: Menyapa rekan kerja" required />
+              <label class="text-sm font-extrabold text-[#71866b] block mt-3 mb-2" for="new-habit-note">Catatan singkat (opsional)</label>
+              <input class="field" id="new-habit-note" maxlength="120" placeholder="Contoh: Sapa dengan ramah saat bertemu" />
+              <div class="flex gap-2 mt-3">
+                <button class="primary-btn" type="submit">Simpan kebiasaan</button>
+                <button class="secondary-btn" type="button" id="cancel-habit">Batal</button>
+              </div>
+            </form>
+            <div class="space-y-2" id="settings-habit-list"></div>
+          </div>
+
+          <div class="forest-card p-5 sm:p-6">
+            <div class="eyebrow mb-1">Keep your garden safe</div>
+            <h3 class="section-title">Data & cadangan</h3>
+            <p class="text-sm muted mt-1">Data disimpan di localStorage browser pada perangkat ini.</p>
+            <div class="flex flex-wrap gap-2 mt-4">
+              <button class="secondary-btn" id="export-data"><i class="fa-solid fa-file-arrow-down mr-2"></i>Ekspor JSON</button>
+              <label class="secondary-btn inline-flex items-center"><i class="fa-solid fa-file-arrow-up mr-2"></i>Impor JSON<input type="file" id="import-file" accept="application/json,.json" class="hidden" /></label>
+              <button class="secondary-btn !text-[#a15f4e] !border-[#ead1c8]" id="clear-data"><i class="fa-solid fa-trash-can mr-2"></i>Hapus semua data</button>
+            </div>
+          </div>
+        </section>
+
+        <footer class="text-center text-xs font-bold text-[#91a18a] py-6">
+          Made for steady growth · <span id="footer-year"></span> 🌿
+        </footer>
+      </main>
+    </div>
+
+    <!-- Mobile navigation -->
+    <nav class="mobile-nav forest-card p-2 mt-3 gap-1 justify-around sticky bottom-2 z-20" aria-label="Navigasi mobile">
+      <button class="nav-button active !justify-center !px-2 !py-3" data-view="today" aria-label="Hari ini"><i class="fa-solid fa-seedling"></i><span class="text-xs">Hari ini</span></button>
+      <button class="nav-button !justify-center !px-2 !py-3" data-view="calendar" aria-label="Kalender"><i class="fa-regular fa-calendar"></i><span class="text-xs">Kalender</span></button>
+      <button class="nav-button !justify-center !px-2 !py-3" data-view="stats" aria-label="Statistik"><i class="fa-solid fa-chart-simple"></i><span class="text-xs">Statistik</span></button>
+      <button class="nav-button !justify-center !px-2 !py-3" data-view="reflection" aria-label="Jurnal"><i class="fa-regular fa-bookmark"></i><span class="text-xs">Jurnal</span></button>
+      <button class="nav-button !justify-center !px-2 !py-3" data-view="settings" aria-label="Pengaturan"><i class="fa-solid fa-sliders"></i><span class="text-xs">Atur</span></button>
+    </nav>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+    (() => {
+      "use strict";
+
+      const STORAGE_KEY = "habit-reset-zenith-v1";
+      const TIME_ZONE = "Asia/Makassar";
+      const $ = (id) => document.getElementById(id);
+
+      const defaultHabits = [
+        { id: "greeting", name: "Menyapa dan memberi salam", note: "Sapa dengan jelas dan ramah saat bertemu." },
+        { id: "smile", name: "Menjaga ekspresi yang ramah", note: "Tunjukkan perhatian lewat ekspresi dan bahasa tubuh." },
+        { id: "report", name: "Melakukan HORENSO", note: "Lapor, hubungi, dan konsultasikan sebelum bertindak." },
+        { id: "team", name: "Berkomunikasi dengan tim", note: "Jangan mengisolasi diri; libatkan rekan kerja." },
+        { id: "professional", name: "Menjaga sikap profesional", note: "Gunakan bahasa dan sikap yang sesuai situasi." },
+        { id: "reflect", name: "Mengevaluasi tindakan hari ini", note: "Pikirkan satu hal yang bisa diperbaiki besok." }
+      ];
+
+      function localDateKey(date = new Date()) {
+        const parts = new Intl.DateTimeFormat("en-CA", {
+          timeZone: TIME_ZONE, year: "numeric", month: "2-digit", day: "2-digit"
+        }).formatToParts(date);
+        const part = (type) => parts.find(p => p.type === type)?.value || "";
+        return `${part("year")}-${part("month")}-${part("day")}`;
+      }
+
+      function dateFromKey(key) {
+        const [y, m, d] = key.split("-").map(Number);
+        return new Date(y, m - 1, d, 12, 0, 0);
+      }
+
+      function addDays(key, amount) {
+        const date = dateFromKey(key);
+        date.setDate(date.getDate() + amount);
+        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+      }
+
+      function prettyDate(key, options = { weekday: "long", day: "numeric", month: "long", year: "numeric" }) {
+        return new Intl.DateTimeFormat("id-ID", options).format(dateFromKey(key));
+      }
+
+      function freshState() {
+        return {
+          startDate: localDateKey(),
+          duration: 30,
+          habits: defaultHabits.map(h => ({ ...h })),
+          records: {},
+          reflections: {}
+        };
+      }
+
+      function loadState() {
+        try {
+          const raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) return freshState();
+          const parsed = JSON.parse(raw);
+          if (!parsed || !Array.isArray(parsed.habits) || !parsed.records || !parsed.reflections) return freshState();
+          return {
+            ...freshState(),
+            ...parsed,
+            duration: Math.min(365, Math.max(1, Number(parsed.duration) || 30)),
+            habits: parsed.habits.filter(h => h && typeof h.id === "string" && typeof h.name === "string"),
+            records: parsed.records,
+            reflections: parsed.reflections
+          };
+        } catch {
+          return freshState();
+        }
+      }
+
+      let state = loadState();
+      let selectedDate = localDateKey();
+      let calendarMonth = dateFromKey(selectedDate);
+      let toastTimer = null;
+
+      function saveState() {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch {
+          showToast("Penyimpanan browser penuh atau tidak tersedia.");
+        }
+      }
+
+      function showToast(message) {
+        const toast = $("toast");
+        toast.textContent = message;
+        toast.classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove("show"), 2600);
+      }
+
+      function getRecord(key) {
+        if (!state.records[key] || typeof state.records[key] !== "object") state.records[key] = {};
+        return state.records[key];
+      }
+
+      function isDone(key, habitId) {
+        return Boolean(getRecord(key)[habitId]);
+      }
+
+      function completedCount(key) {
+        return state.habits.reduce((sum, habit) => sum + (isDone(key, habit.id) ? 1 : 0), 0);
+      }
+
+      function percentFor(key) {
+        if (!state.habits.length) return 0;
+        return Math.round(completedCount(key) / state.habits.length * 100);
+      }
+
+      function isComplete(key) {
+        return state.habits.length > 0 && percentFor(key) === 100;
+      }
+
+      function streakEndingAt(key) {
+        let count = 0;
+        let cursor = key;
+        while (isComplete(cursor) && count < 3650) {
+          count++;
+          cursor = addDays(cursor, -1);
+        }
+        return count;
+      }
+
+      function bestStreak() {
+        const keys = Object.keys(state.records).sort();
+        if (!keys.length) return 0;
+        let best = 0, current = 0, previous = "";
+        for (const key of keys) {
+          if (!isComplete(key)) { current = 0; previous = key; continue; }
+          current = previous && addDays(previous, 1) === key ? current + 1 : 1;
+          best = Math.max(best, current);
+          previous = key;
+        }
+        return best;
+      }
+
+      function programInfo() {
+        const today = localDateKey();
+        const start = dateFromKey(state.startDate);
+        const todayDate = dateFromKey(today);
+        const elapsed = Math.floor((todayDate - start) / 86400000);
+        const dayNumber = elapsed + 1;
+        const daysLeft = Math.max(0, state.duration - Math.max(0, elapsed + 1));
+        return { today, elapsed, dayNumber, daysLeft };
+      }
+
+      function escapeHtml(value) {
+        return String(value).replace(/[&<>"']/g, ch => ({
+          "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+        }[ch]));
+      }
+
+      function renderClock() {
+        $("clock").textContent = new Intl.DateTimeFormat("id-ID", {
+          timeZone: TIME_ZONE, weekday: "short", day: "numeric", month: "short",
+          hour: "2-digit", minute: "2-digit", hour12: false
+        }).format(new Date()) + " WITA";
+      }
+
+      function renderToday() {
+        $("today-label").textContent = prettyDate(selectedDate, { weekday: "long", day: "numeric", month: "long" });
+        $("selected-date").value = selectedDate;
+        const count = completedCount(selectedDate);
+        const percent = percentFor(selectedDate);
+        $("today-percent").textContent = percent;
+        $("today-progress").style.width = percent + "%";
+        $("today-count").textContent = `${count} dari ${state.habits.length} kebiasaan`;
+        $("streak-number").textContent = streakEndingAt(selectedDate);
+
+        const info = programInfo();
+        $("days-left").textContent = info.daysLeft;
+        $("program-date").textContent = `Hari ke-${Math.max(1, info.dayNumber)} dari ${state.duration}`;
+
+        const messages = percent === 100
+          ? "Checklist lengkap—kamu sudah merawat tamanmu hari ini! 🌼"
+          : percent >= 50
+            ? "Kamu sudah menumbuhkan beberapa tunas. Lanjutkan pelan-pelan 🍃"
+            : "Setiap usaha kecil tetap berarti. Mulai dari satu langkah 🌱";
+        $("encouragement").textContent = messages;
+
+        const list = $("habit-list");
+        if (!state.habits.length) {
+          list.innerHTML = `<div class="soft-card p-5 text-sm muted">Belum ada kebiasaan. Tambahkan dari menu Pengaturan.</div>`;
+        } else {
+          list.innerHTML = state.habits.map(habit => {
+            const done = isDone(selectedDate, habit.id);
+            return `<button class="habit-row w-full text-left ${done ? "done" : ""}" data-toggle-habit="${escapeHtml(habit.id)}" aria-pressed="${done}">
+              <span class="habit-check"><i class="fa-solid fa-check text-xs"></i></span>
+              <span class="min-w-0 flex-1"><span class="habit-name block">${escapeHtml(habit.name)}</span>
+              ${habit.note ? `<span class="habit-note block mt-1">${escapeHtml(habit.note)}</span>` : ""}</span>
+              <span class="text-xl">${done ? "🌼" : "🌱"}</span>
+            </button>`;
+          }).join("");
+        }
+
+        $("quick-reflection").value = state.reflections[selectedDate] || "";
+      }
+
+      function renderCalendar() {
+        const year = calendarMonth.getFullYear();
+        const month = calendarMonth.getMonth();
+        $("month-label").textContent = new Intl.DateTimeFormat("id-ID", { month: "long", year: "numeric" }).format(calendarMonth);
+        const first = new Date(year, month, 1);
+        const start = new Date(year, month, 1 - first.getDay());
+        const today = localDateKey();
+        const days = [];
+
+        for (let i = 0; i < 42; i++) {
+          const date = new Date(start);
+          date.setDate(start.getDate() + i);
+          const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+          const outside = date.getMonth() !== month;
+          const complete = isComplete(key);
+          const percent = percentFor(key);
+          days.push(`<button class="calendar-day ${outside ? "outside" : ""} ${key === selectedDate ? "selected" : ""} ${key === today ? "today" : ""}" data-calendar-date="${key}" aria-label="${prettyDate(key)}: ${percent}% selesai">
+            <span class="day-number">${date.getDate()}</span>
+            <span class="day-mark block">${complete ? "🌼 Selesai" : percent ? `${percent}%` : "·"}</span>
+          </button>`);
+        }
+        $("calendar-grid").innerHTML = days.join("");
+        $("calendar-selected-label").textContent = prettyDate(selectedDate);
+        $("calendar-selected-progress").textContent = percentFor(selectedDate) + "% selesai";
+        $("calendar-selected-bar").style.width = percentFor(selectedDate) + "%";
+      }
+
+      function renderStats() {
+        const keys = Object.keys(state.records);
+        const completed = keys.reduce((sum, key) => sum + completedCount(key), 0);
+        const activeDays = keys.filter(key => completedCount(key) > 0).length;
+        const totalPossible = Math.max(1, keys.length * state.habits.length);
+        const average = Math.round(completed / totalPossible * 100);
+        $("stat-completed").textContent = completed;
+        $("stat-rate").textContent = average + "%";
+        $("stat-active").textContent = activeDays;
+        $("stat-best").textContent = bestStreak();
+
+        const last7 = [];
+        for (let i = 6; i >= 0; i--) {
+          const key = addDays(localDateKey(), -i);
+          last7.push({ key, percent: percentFor(key) });
+        }
+        $("weekly-chart").innerHTML = last7.map(item => `
+          <div class="flex-1 h-full min-w-0 flex flex-col items-center gap-2">
+            <div class="text-[10px] font-black text-[#80917b]">${item.percent}%</div>
+            <div class="mini-bar w-full flex-1"><span style="height:${item.percent}%"></span></div>
+            <div class="text-[10px] font-extrabold text-[#80917b]">${new Intl.DateTimeFormat("id-ID", { weekday: "short" }).format(dateFromKey(item.key))}</div>
+          </div>`).join("");
+
+        $("habit-stats").innerHTML = state.habits.length ? state.habits.map(habit => {
+          const doneDays = keys.reduce((sum, key) => sum + (isDone(key, habit.id) ? 1 : 0), 0);
+          const rate = keys.length ? Math.round(doneDays / keys.length * 100) : 0;
+          return `<div>
+            <div class="flex items-center justify-between gap-3 mb-2">
+              <span class="font-extrabold text-sm text-[#536b50]">${escapeHtml(habit.name)}</span>
+              <span class="text-xs font-black text-[#80917b]">${doneDays} hari · ${rate}%</span>
+            </div>
+            <div class="progress-track"><div class="progress-fill" style="width:${rate}%"></div></div>
+          </div>`;
+        }).join("") : `<p class="text-sm muted">Tambahkan kebiasaan untuk melihat statistik.</p>`;
+      }
+
+      function renderJournal() {
+        const entries = Object.entries(state.reflections)
+          .filter(([, text]) => typeof text === "string" && text.trim())
+          .sort(([a], [b]) => b.localeCompare(a));
+        $("journal-count").textContent = `${entries.length} catatan`;
+        $("journal-history").innerHTML = entries.length ? entries.map(([key, text]) => `
+          <article class="soft-card p-4">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <div class="font-black text-sm text-forest">${prettyDate(key)}</div>
+              <div class="flex gap-2">
+                <button class="secondary-btn !px-3 !py-1.5 text-xs" data-edit-journal="${key}">Buka</button>
+                <button class="secondary-btn !px-3 !py-1.5 text-xs !text-[#a15f4e]" data-delete-journal="${key}">Hapus</button>
+              </div>
+            </div>
+            <p class="text-sm text-[#687d62] whitespace-pre-wrap break-words">${escapeHtml(text)}</p>
+          </article>`).join("") : `<div class="soft-card p-5 text-sm muted">Belum ada catatan. Mulai dengan satu kalimat sederhana 🌱</div>`;
+      }
+
+      function renderSettings() {
+        $("start-date").value = state.startDate;
+        $("program-days").value = state.duration;
+        $("settings-habit-list").innerHTML = state.habits.length ? state.habits.map((habit, index) => `
+          <div class="habit-row">
+            <span class="text-xl">${["🌱", "🍃", "🌼", "🍄", "🪴", "🌿"][index % 6]}</span>
+            <span class="min-w-0 flex-1">
+              <span class="habit-name block">${escapeHtml(habit.name)}</span>
+              ${habit.note ? `<span class="habit-note block mt-1">${escapeHtml(habit.note)}</span>` : ""}
+            </span>
+            <button class="secondary-btn !px-3 !py-2 !text-xs" data-edit-habit="${escapeHtml(habit.id)}" aria-label="Edit ${escapeHtml(habit.name)}"><i class="fa-solid fa-pen"></i></button>
+            <button class="secondary-btn !px-3 !py-2 !text-xs !text-[#a15f4e]" data-delete-habit="${escapeHtml(habit.id)}" aria-label="Hapus ${escapeHtml(habit.name)}"><i class="fa-solid fa-trash"></i></button>
+          </div>`).join("") : `<div class="soft-card p-4 text-sm muted">Belum ada kebiasaan. Tambahkan satu kebiasaan kecil.</div>`;
+      }
+
+      function renderAll() {
+        renderClock();
+        renderToday();
+        renderCalendar();
+        renderStats();
+        renderJournal();
+        renderSettings();
+      }
+
+      function navigate(viewName) {
+        document.querySelectorAll(".view").forEach(view => view.classList.toggle("active", view.id === `view-${viewName}`));
+        document.querySelectorAll("[data-view]").forEach(button => button.classList.toggle("active", button.dataset.view === viewName));
+        if (viewName === "calendar") renderCalendar();
+        if (viewName === "stats") renderStats();
+        if (viewName === "reflection") renderJournal();
+        if (viewName === "settings") renderSettings();
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+
+      document.querySelectorAll("[data-view]").forEach(button => {
+        button.addEventListener("click", () => navigate(button.dataset.view));
+      });
+
+      $("go-checklist").addEventListener("click", () => {
+        $("checklist-card").scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+
+      $("selected-date").addEventListener("change", event => {
+        if (!event.target.value) return;
+        selectedDate = event.target.value;
+        renderToday();
+        renderCalendar();
+      });
+
+      $("jump-today").addEventListener("click", () => {
+        selectedDate = localDateKey();
+        renderToday();
+        renderCalendar();
+      });
+
+      $("habit-list").addEventListener("click", event => {
+        const button = event.target.closest("[data-toggle-habit]");
+        if (!button) return;
+        const id = button.dataset.toggleHabit;
+        const record = getRecord(selectedDate);
+        record[id] = !record[id];
+        if (!record[id]) delete record[id];
+        saveState();
+        renderToday();
+        renderCalendar();
+        renderStats();
+      });
+
+      $("reset-day").addEventListener("click", () => {
+        if (!confirm(`Reset checklist tanggal ${prettyDate(selectedDate)}?`)) return;
+        delete state.records[selectedDate];
+        saveState();
+        renderAll();
+        showToast("Checklist hari itu sudah direset.");
+      });
+
+      $("save-reflection").addEventListener("click", () => {
+        const text = $("quick-reflection").value.trim();
+        if (text) state.reflections[selectedDate] = text;
+        else delete state.reflections[selectedDate];
+        saveState();
+        renderJournal();
+        showToast("Catatan hari ini tersimpan 🌿");
+      });
+
+      $("prev-month").addEventListener("click", () => {
+        calendarMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1, 1);
+        renderCalendar();
+      });
+      $("next-month").addEventListener("click", () => {
+        calendarMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1);
+        renderCalendar();
+      });
+
+      $("calendar-grid").addEventListener("click", event => {
+        const button = event.target.closest("[data-calendar-date]");
+        if (!button) return;
+        selectedDate = button.dataset.calendarDate;
+        renderToday();
+        renderCalendar();
+      });
+
+      $("open-selected-day").addEventListener("click", () => {
+        navigate("today");
+        renderToday();
+        $("checklist-card").scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+
+      $("journal-date").value = selectedDate;
+      $("journal-date").addEventListener("change", () => {
+        const key = $("journal-date").value;
+        if (!key) return;
+        $("journal-text").value = state.reflections[key] || "";
+      });
+
+      $("save-journal").addEventListener("click", () => {
+        const key = $("journal-date").value;
+        const text = $("journal-text").value.trim();
+        if (!key) return showToast("Pilih tanggal catatan terlebih dahulu.");
+        if (text) state.reflections[key] = text;
+        else delete state.reflections[key];
+        saveState();
+        renderJournal();
+        showToast("Jurnal kecil tersimpan 📖");
+      });
+
+      $("clear-journal-form").addEventListener("click", () => {
+        $("journal-text").value = "";
+      });
+
+      $("journal-history").addEventListener("click", event => {
+        const edit = event.target.closest("[data-edit-journal]");
+        const remove = event.target.closest("[data-delete-journal]");
+        if (edit) {
+          const key = edit.dataset.editJournal;
+          $("journal-date").value = key;
+          $("journal-text").value = state.reflections[key] || "";
+          $("journal-date").scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+        if (remove) {
+          const key = remove.dataset.deleteJournal;
+          if (!confirm(`Hapus catatan tanggal ${prettyDate(key)}?`)) return;
+          delete state.reflections[key];
+          saveState();
+          renderJournal();
+          showToast("Catatan dihapus.");
+        }
+      });
+
+      let editingHabitId = null;
+      $("add-habit").addEventListener("click", () => {
+        editingHabitId = null;
+        $("habit-form").classList.remove("hidden");
+        $("new-habit-name").value = "";
+        $("new-habit-note").value = "";
+        $("new-habit-name").focus();
+      });
+      $("cancel-habit").addEventListener("click", () => {
+        $("habit-form").classList.add("hidden");
+        editingHabitId = null;
+      });
+
+      $("habit-form").addEventListener("submit", event => {
+        event.preventDefault();
+        const name = $("new-habit-name").value.trim();
+        const note = $("new-habit-note").value.trim();
+        if (!name) return;
+        if (editingHabitId) {
+          const habit = state.habits.find(h => h.id === editingHabitId);
+          if (habit) { habit.name = name; habit.note = note; }
+        } else {
+          state.habits.push({ id: `habit-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, name, note });
+        }
+        editingHabitId = null;
+        $("habit-form").classList.add("hidden");
+        saveState();
+        renderAll();
+        showToast("Kebiasaan berhasil disimpan 🌱");
+      });
+
+      $("settings-habit-list").addEventListener("click", event => {
+        const edit = event.target.closest("[data-edit-habit]");
+        const remove = event.target.closest("[data-delete-habit]");
+        if (edit) {
+          const habit = state.habits.find(h => h.id === edit.dataset.editHabit);
+          if (!habit) return;
+          editingHabitId = habit.id;
+          $("new-habit-name").value = habit.name;
+          $("new-habit-note").value = habit.note || "";
+          $("habit-form").classList.remove("hidden");
+          $("new-habit-name").focus();
+        }
+        if (remove) {
+          const id = remove.dataset.deleteHabit;
+          const habit = state.habits.find(h => h.id === id);
+          if (!habit || !confirm(`Hapus kebiasaan "${habit.name}"?`)) return;
+          state.habits = state.habits.filter(h => h.id !== id);
+          Object.keys(state.records).forEach(key => { delete state.records[key][id]; });
+          saveState();
+          renderAll();
+          showToast("Kebiasaan dihapus.");
+        }
+      });
+
+      $("save-program").addEventListener("click", () => {
+        const startDate = $("start-date").value;
+        const duration = Number($("program-days").value);
+        if (!startDate) return showToast("Pilih tanggal mulai program.");
+        if (!Number.isInteger(duration) || duration < 1 || duration > 365) {
+          return showToast("Durasi harus 1–365 hari.");
+        }
+        state.startDate = startDate;
+        state.duration = duration;
+        saveState();
+        renderAll();
+        showToast("Pengaturan program tersimpan.");
+      });
+
+      $("export-data").addEventListener("click", () => {
+        const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = `little-forest-backup-${localDateKey()}.json`;
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        URL.revokeObjectURL(url);
+        showToast("Cadangan data siap diekspor.");
+      });
+
+      $("import-file").addEventListener("change", async event => {
+        const file = event.target.files && event.target.files[0];
+        if (!file) return;
+        try {
+          const imported = JSON.parse(await file.text());
+          if (!imported || !Array.isArray(imported.habits) || !imported.records || !imported.reflections) {
+            throw new Error("Format tidak sesuai");
+          }
+          if (!confirm("Impor akan mengganti data yang tersimpan saat ini. Lanjutkan?")) {
+            event.target.value = "";
+            return;
+          }
+          state = {
+            ...freshState(),
+            ...imported,
+            duration: Math.min(365, Math.max(1, Number(imported.duration) || 30)),
+            habits: imported.habits.filter(h => h && typeof h.id === "string" && typeof h.name === "string"),
+            records: imported.records,
+            reflections: imported.reflections
+          };
+          saveState();
+          renderAll();
+          showToast("Data berhasil diimpor.");
+        } catch {
+          showToast("File tidak valid atau tidak cocok.");
+        }
+        event.target.value = "";
+      });
+
+      $("clear-data").addEventListener("click", () => {
+        if (!confirm("Hapus semua checklist, jurnal, dan pengaturan? Data ini tidak bisa dipulihkan kecuali kamu punya cadangan.")) return;
+        state = freshState();
+        selectedDate = localDateKey();
+        calendarMonth = dateFromKey(selectedDate);
+        saveState();
+        renderAll();
+        showToast("Taman dimulai kembali dari awal.");
+      });
+
+      $("footer-year").textContent = new Date().getFullYear();
+      renderAll();
+      setInterval(renderClock, 30000);
+    })();
+  </script>
+</body>
+</html>
