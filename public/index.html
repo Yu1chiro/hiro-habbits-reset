@@ -1,9 +1,8 @@
-
 <!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#eaf1df" />
   <title>Little Forest — Habit Garden</title>
 
@@ -46,7 +45,13 @@
     }
 
     * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; }
+    html {
+      scroll-behavior: smooth;
+      overflow-x: hidden;
+      width: 100%;
+      -webkit-text-size-adjust: 100%;
+    }
+    html, body { overscroll-behavior-x: none; }
     body {
       margin: 0;
       color: #354b3b;
@@ -56,16 +61,28 @@
         linear-gradient(145deg, #edf3e4 0%, #e6efdf 45%, #f5f1e4 100%);
       font-family: "Nunito", "Trebuchet MS", sans-serif;
       min-height: 100vh;
+      min-height: 100dvh;
+      overflow-x: hidden;
+      width: 100%;
+      max-width: 100vw;
+      overscroll-behavior-y: contain;
+      -webkit-overflow-scrolling: touch;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: pan-y;
     }
 
+    img, svg { max-width: 100%; }
+
     button, input, textarea, select { font: inherit; }
-    button { cursor: pointer; }
+    button { cursor: pointer; touch-action: manipulation; }
     button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
       outline: 3px solid #9dbd91;
       outline-offset: 3px;
     }
+    /* Prevent iOS Safari from auto-zooming the page when a field is focused */
+    input, textarea, select { font-size: 16px; }
 
-    .app-shell { max-width: 1440px; margin: auto; padding: 22px; }
+    .app-shell { max-width: 1440px; margin: auto; padding: 22px; width: 100%; overflow-x: clip; }
     .forest-card {
       background: rgba(255, 255, 248, .82);
       border: 1px solid rgba(210, 224, 201, .9);
@@ -132,8 +149,8 @@
     }
     .habit-row.done .habit-check { color: white; background: #789570; border-color: #789570; }
     .habit-row.done .habit-name { color: #82927b; text-decoration: line-through; }
-    .habit-name { font-weight: 800; color: #496149; }
-    .habit-note { font-size: 12px; color: #8a9a83; }
+    .habit-name { font-weight: 800; color: #496149; overflow-wrap: anywhere; }
+    .habit-note { font-size: 12px; color: #8a9a83; overflow-wrap: anywhere; }
     .progress-track { height: 11px; background: #e5ecde; border-radius: 999px; overflow: hidden; }
     .progress-fill { height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, #8fae81, #587b5a); transition: width .3s ease; }
     .calendar-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 7px; }
@@ -154,16 +171,19 @@
     }
     .field::placeholder { color: #a1ad99; }
     .toast {
-      position: fixed; right: 20px; bottom: 20px; z-index: 50; max-width: min(360px, calc(100vw - 40px));
+      position: fixed; right: 20px; bottom: calc(20px + env(safe-area-inset-bottom)); z-index: 50; max-width: min(360px, calc(100vw - 40px));
       padding: 13px 17px; border-radius: 15px; color: white; background: #405c48;
       box-shadow: 0 10px 30px #304a3830; font-weight: 800; opacity: 0; transform: translateY(12px);
-      pointer-events: none; transition: .22s;
+      pointer-events: none; transition: .22s; overflow-wrap: anywhere;
     }
     .toast.show { opacity: 1; transform: none; }
     .mini-bar { flex: 1; min-width: 0; background: #e8eee1; border-radius: 8px 8px 3px 3px; overflow: hidden; display: flex; align-items: end; }
     .mini-bar > span { display: block; width: 100%; background: linear-gradient(#a8c49b, #6f916b); border-radius: inherit; min-height: 3px; }
     .leaf-divider { height: 1px; background: linear-gradient(90deg, transparent, #d9e5d0, transparent); }
-    .mobile-nav { display: none; }
+    .mobile-nav {
+      display: none;
+      padding-bottom: calc(8px + env(safe-area-inset-bottom));
+    }
     @media (max-width: 900px) {
       .app-shell { padding: 12px; }
       .desktop-sidebar { display: none; }
@@ -178,6 +198,17 @@
       .calendar-day.selected { padding: 4px; }
       .calendar-day .day-mark { font-size: 9px; }
       .hero-art { display: none; }
+      .mobile-nav { gap: 0; }
+      .mobile-nav .nav-button { padding-left: 4px; padding-right: 4px; }
+      .mobile-nav .nav-button span { font-size: 10px; }
+      #month-label { min-width: 96px !important; font-size: 13px; }
+      .field { font-size: 16px; }
+    }
+    @media (max-width: 380px) {
+      .app-shell { padding: 7px; }
+      .forest-card { border-radius: 16px; }
+      .hero { padding: 18px !important; }
+      .stat-number { font-size: 22px; }
     }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
@@ -267,9 +298,9 @@
                 <h2 class="section-title">Checklist kebiasaan</h2>
                 <p class="text-sm muted mt-1">Tandai setelah kamu melakukannya.</p>
               </div>
-              <div class="flex items-center gap-2">
-                <input type="date" id="selected-date" class="field !w-auto !py-2 text-sm" aria-label="Pilih tanggal checklist" />
-                <button class="secondary-btn !px-3 !py-2" id="jump-today" title="Kembali ke hari ini"><i class="fa-solid fa-calendar-day"></i></button>
+              <div class="flex flex-wrap items-center gap-2 min-w-0">
+                <input type="date" id="selected-date" class="field !w-auto !py-2 text-sm min-w-0" aria-label="Pilih tanggal checklist" />
+                <button class="secondary-btn !px-3 !py-2 shrink-0" id="jump-today" title="Kembali ke hari ini"><i class="fa-solid fa-calendar-day"></i></button>
               </div>
             </div>
             <div class="space-y-2" id="habit-list"></div>
@@ -306,10 +337,10 @@
                 <h2 class="section-title">Kalender kebiasaan</h2>
                 <p class="text-sm muted mt-1">Pilih tanggal untuk melihat atau mengubah checklist.</p>
               </div>
-              <div class="flex items-center gap-2">
-                <button class="secondary-btn !px-3" id="prev-month" aria-label="Bulan sebelumnya"><i class="fa-solid fa-chevron-left"></i></button>
-                <div class="font-black text-forest min-w-[125px] text-center" id="month-label">Bulan</div>
-                <button class="secondary-btn !px-3" id="next-month" aria-label="Bulan berikutnya"><i class="fa-solid fa-chevron-right"></i></button>
+              <div class="flex items-center gap-2 min-w-0">
+                <button class="secondary-btn !px-3 shrink-0" id="prev-month" aria-label="Bulan sebelumnya"><i class="fa-solid fa-chevron-left"></i></button>
+                <div class="font-black text-forest min-w-[125px] text-center truncate" id="month-label">Bulan</div>
+                <button class="secondary-btn !px-3 shrink-0" id="next-month" aria-label="Bulan berikutnya"><i class="fa-solid fa-chevron-right"></i></button>
               </div>
             </div>
             <div class="calendar-grid mb-2 text-center text-xs font-black text-[#91a18a]">
@@ -703,9 +734,9 @@
           const doneDays = keys.reduce((sum, key) => sum + (isDone(key, habit.id) ? 1 : 0), 0);
           const rate = keys.length ? Math.round(doneDays / keys.length * 100) : 0;
           return `<div>
-            <div class="flex items-center justify-between gap-3 mb-2">
-              <span class="font-extrabold text-sm text-[#536b50]">${escapeHtml(habit.name)}</span>
-              <span class="text-xs font-black text-[#80917b]">${doneDays} hari · ${rate}%</span>
+            <div class="flex items-center justify-between gap-3 mb-2 min-w-0">
+              <span class="font-extrabold text-sm text-[#536b50] truncate min-w-0">${escapeHtml(habit.name)}</span>
+              <span class="text-xs font-black text-[#80917b] shrink-0">${doneDays} hari · ${rate}%</span>
             </div>
             <div class="progress-track"><div class="progress-fill" style="width:${rate}%"></div></div>
           </div>`;
