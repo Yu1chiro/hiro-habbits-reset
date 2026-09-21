@@ -180,37 +180,91 @@
     .mini-bar { flex: 1; min-width: 0; background: #e8eee1; border-radius: 8px 8px 3px 3px; overflow: hidden; display: flex; align-items: end; }
     .mini-bar > span { display: block; width: 100%; background: linear-gradient(#a8c49b, #6f916b); border-radius: inherit; min-height: 3px; }
     .leaf-divider { height: 1px; background: linear-gradient(90deg, transparent, #d9e5d0, transparent); }
-    .mobile-nav {
-      display: none;
-      padding-bottom: calc(8px + env(safe-area-inset-bottom));
+    .menu-toggle {
+      position: fixed;
+      top: calc(16px + env(safe-area-inset-top));
+      left: calc(16px + env(safe-area-inset-left));
+      z-index: 60;
+      display: grid;
+      place-items: center;
+      width: 48px;
+      height: 48px;
+      border-radius: 16px;
+      color: var(--forest);
+      font-size: 19px;
+      transition: transform .18s, background .18s, color .18s;
     }
-    .mobile-nav-wrap { position: relative; padding-bottom: calc(8px + env(safe-area-inset-bottom)); }
-    .mobile-menu-toggle {
-      display: none;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      width: 100%;
-      padding: 12px 16px;
-      font-weight: 900;
+    .menu-toggle:hover { color: white; background: var(--forest); transform: translateY(-1px); }
+    .menu-toggle[aria-expanded="true"] { color: white; background: var(--forest); }
+    .nav-drawer {
+      position: fixed;
+      inset: 0 auto 0 0;
+      z-index: 70;
+      width: min(300px, calc(100vw - 44px));
+      padding: calc(22px + env(safe-area-inset-top)) 20px calc(22px + env(safe-area-inset-bottom));
+      overflow-y: auto;
+      border-radius: 0 25px 25px 0;
+      background: rgba(255, 255, 248, .97);
+      border-right: 1px solid rgba(210, 224, 201, .95);
+      box-shadow: 18px 0 45px rgba(48, 74, 56, .18);
+      backdrop-filter: blur(14px);
+      transform: translateX(-105%);
+      visibility: hidden;
+      transition: transform .25s ease, visibility .25s;
+    }
+    .nav-drawer.open { transform: translateX(0); visibility: visible; }
+    .nav-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 65;
+      border: 0;
+      background: rgba(42, 58, 45, .28);
+      opacity: 0;
+      visibility: hidden;
+      cursor: default;
+      transition: opacity .25s ease, visibility .25s;
+    }
+    .nav-backdrop.open { opacity: 1; visibility: visible; }
+    .drawer-close {
+      display: grid;
+      place-items: center;
+      flex: 0 0 40px;
+      width: 40px;
+      height: 40px;
+      border-radius: 13px;
       color: #6b8068;
+      background: #edf3e7;
+      transition: background .18s, color .18s;
     }
-    .mobile-menu-toggle i { transition: transform .18s; }
-    .mobile-menu-toggle[aria-expanded="true"] { color: white; background: var(--forest); }
-    .mobile-menu-panel {
-      position: absolute;
-      left: 0; right: 0; bottom: calc(100% + 10px);
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      box-shadow: 0 14px 34px rgba(64, 92, 72, .18);
+    .drawer-close:hover { color: white; background: var(--forest); }
+    .page-header { padding-left: 58px; min-height: 48px; }
+    body.menu-open { overflow: hidden; }
+
+    .sortable-habit { position: relative; transition: transform .16s, opacity .16s, border-color .16s, box-shadow .16s; }
+    .sortable-habit.dragging {
+      opacity: .58;
+      border-color: #91ad86;
+      box-shadow: 0 10px 24px rgba(64, 92, 72, .13);
     }
-    .mobile-menu-panel.hidden { display: none; }
+    .drag-handle {
+      display: grid;
+      place-items: center;
+      flex: 0 0 34px;
+      width: 34px;
+      height: 40px;
+      border-radius: 11px;
+      color: #91a08b;
+      background: transparent;
+      cursor: grab;
+      touch-action: none;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .drag-handle:hover { color: var(--forest); background: #edf3e7; }
+    .drag-handle:active { cursor: grabbing; }
+    .drag-hint { display: flex; align-items: center; gap: 7px; color: #899783; font-size: 12px; font-weight: 700; }
     @media (max-width: 900px) {
       .app-shell { padding: 12px; }
-      .desktop-sidebar { display: none; }
-      .mobile-nav { display: none; }
-      .mobile-menu-toggle { display: flex; }
       .hero-art { opacity: .35; right: 10px; }
     }
     @media (max-width: 520px) {
@@ -221,9 +275,11 @@
       .calendar-day.selected { padding: 4px; }
       .calendar-day .day-mark { font-size: 9px; }
       .hero-art { display: none; }
-      .mobile-nav { gap: 0; }
-      .mobile-nav .nav-button { padding-left: 4px; padding-right: 4px; }
-      .mobile-nav .nav-button span { font-size: 10px; }
+      .menu-toggle { top: calc(9px + env(safe-area-inset-top)); left: calc(9px + env(safe-area-inset-left)); width: 44px; height: 44px; border-radius: 14px; }
+      .page-header { padding-left: 52px; min-height: 44px; }
+      .nav-drawer { width: min(290px, calc(100vw - 28px)); padding-left: 16px; padding-right: 16px; }
+      .sortable-habit { gap: 8px; padding: 10px; }
+      .drag-handle { flex-basis: 30px; width: 30px; }
       #month-label { min-width: 96px !important; font-size: 13px; }
       .field { font-size: 16px; }
     }
@@ -240,39 +296,46 @@
 </head>
 
 <body>
+  <button id="menu-toggle" class="menu-toggle forest-card" type="button" aria-label="Buka menu navigasi" aria-expanded="false" aria-controls="nav-drawer">
+    <i class="fa-solid fa-bars" aria-hidden="true"></i>
+  </button>
+  <button id="nav-backdrop" class="nav-backdrop" type="button" aria-label="Tutup menu navigasi" tabindex="-1"></button>
+
+  <!-- Navigation drawer -->
+  <aside id="nav-drawer" class="nav-drawer" aria-label="Menu utama" aria-hidden="true">
+    <div class="flex items-center justify-between gap-3 mb-8">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-12 h-12 shrink-0 rounded-2xl bg-[#e3edd9] grid place-items-center text-2xl">🌱</div>
+        <div class="min-w-0">
+          <div class="font-black text-xl text-forest leading-tight truncate">Little Forest</div>
+          <div class="text-xs muted font-bold">your tiny habit garden</div>
+        </div>
+      </div>
+      <button id="drawer-close" class="drawer-close" type="button" aria-label="Tutup menu navigasi"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
+    </div>
+
+    <div class="eyebrow mb-3 px-3">Garden menu</div>
+    <nav class="space-y-1" aria-label="Navigasi utama">
+      <button class="nav-button active" data-view="today"><i class="fa-solid fa-seedling"></i>Hari ini</button>
+      <button class="nav-button" data-view="calendar"><i class="fa-regular fa-calendar"></i>Kalender</button>
+      <button class="nav-button" data-view="stats"><i class="fa-solid fa-chart-simple"></i>Statistik</button>
+      <button class="nav-button" data-view="reflection"><i class="fa-regular fa-bookmark"></i>Jurnal kecil</button>
+      <button class="nav-button" data-view="settings"><i class="fa-solid fa-sliders"></i>Pengaturan</button>
+    </nav>
+
+    <div class="soft-card p-4 mt-8">
+      <div class="text-2xl mb-2">🍃</div>
+      <p class="font-black text-sm text-forest">Pelan-pelan juga tumbuh.</p>
+      <p class="text-xs muted mt-1 leading-relaxed">Kamu tidak harus sempurna setiap hari. Cukup kembali dan mulai lagi.</p>
+    </div>
+    <div class="text-xs muted font-bold mt-5 text-center">Data tersimpan di browser ini</div>
+  </aside>
+
   <div class="app-shell">
-    <div class="grid grid-cols-1 lg:grid-cols-[245px_minmax(0,1fr)] gap-5">
-
-      <!-- Sidebar -->
-      <aside class="desktop-sidebar forest-card p-5 h-fit lg:sticky lg:top-5">
-        <div class="flex items-center gap-3 mb-8">
-          <div class="w-12 h-12 rounded-2xl bg-[#e3edd9] grid place-items-center text-2xl">🌱</div>
-          <div>
-            <div class="font-black text-xl text-forest leading-tight">Little Forest</div>
-            <div class="text-xs muted font-bold">your tiny habit garden</div>
-          </div>
-        </div>
-
-        <div class="eyebrow mb-3 px-3">Garden menu</div>
-        <nav class="space-y-1" aria-label="Navigasi utama">
-          <button class="nav-button active" data-view="today"><i class="fa-solid fa-seedling"></i>Hari ini</button>
-          <button class="nav-button" data-view="calendar"><i class="fa-regular fa-calendar"></i>Kalender</button>
-          <button class="nav-button" data-view="stats"><i class="fa-solid fa-chart-simple"></i>Statistik</button>
-          <button class="nav-button" data-view="reflection"><i class="fa-regular fa-bookmark"></i>Jurnal kecil</button>
-          <button class="nav-button" data-view="settings"><i class="fa-solid fa-sliders"></i>Pengaturan</button>
-        </nav>
-
-        <div class="soft-card p-4 mt-8">
-          <div class="text-2xl mb-2">🍃</div>
-          <p class="font-black text-sm text-forest">Pelan-pelan juga tumbuh.</p>
-          <p class="text-xs muted mt-1 leading-relaxed">Kamu tidak harus sempurna setiap hari. Cukup kembali dan mulai lagi.</p>
-        </div>
-        <div class="text-xs muted font-bold mt-5 text-center">Data tersimpan di browser ini</div>
-      </aside>
-
+    <div>
       <!-- Main content -->
       <main class="min-w-0">
-        <header class="flex flex-wrap items-center justify-between gap-3 mb-5 px-1">
+        <header class="page-header flex flex-wrap items-center justify-between gap-3 mb-5 px-1">
           <div>
             <div class="eyebrow">A little space to grow</div>
             <h1 class="text-2xl sm:text-3xl font-black text-forest">Habit Garden <span class="text-xl">🌿</span></h1>
@@ -473,6 +536,7 @@
                 <button class="secondary-btn" type="button" id="cancel-habit">Batal</button>
               </div>
             </form>
+            <p class="drag-hint mb-3"><i class="fa-solid fa-grip-vertical" aria-hidden="true"></i>Geser ikon pegangan untuk mengubah urutan kebiasaan.</p>
             <div class="space-y-2" id="settings-habit-list"></div>
           </div>
 
@@ -494,19 +558,6 @@
       </main>
     </div>
 
-    <!-- Mobile navigation (hamburger) -->
-    <div class="mobile-nav-wrap mt-3 sticky bottom-2 z-20">
-      <nav id="mobile-menu-panel" class="mobile-menu-panel hidden forest-card p-2" aria-label="Navigasi mobile">
-        <button class="nav-button active" data-view="today" aria-label="Hari ini"><i class="fa-solid fa-seedling"></i><span>Hari ini</span></button>
-        <button class="nav-button" data-view="calendar" aria-label="Kalender"><i class="fa-regular fa-calendar"></i><span>Kalender</span></button>
-        <button class="nav-button" data-view="stats" aria-label="Statistik"><i class="fa-solid fa-chart-simple"></i><span>Statistik</span></button>
-        <button class="nav-button" data-view="reflection" aria-label="Jurnal"><i class="fa-regular fa-bookmark"></i><span>Jurnal kecil</span></button>
-        <button class="nav-button" data-view="settings" aria-label="Pengaturan"><i class="fa-solid fa-sliders"></i><span>Pengaturan</span></button>
-      </nav>
-      <button id="mobile-menu-toggle" class="mobile-menu-toggle forest-card" type="button" aria-label="Buka menu navigasi" aria-expanded="false" aria-controls="mobile-menu-panel">
-        <i class="fa-solid fa-bars"></i><span>Menu</span>
-      </button>
-    </div>
   </div>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -793,7 +844,8 @@
         $("start-date").value = state.startDate;
         $("program-days").value = state.duration;
         $("settings-habit-list").innerHTML = state.habits.length ? state.habits.map((habit, index) => `
-          <div class="habit-row">
+          <div class="habit-row sortable-habit" data-habit-id="${escapeHtml(habit.id)}">
+            <button class="drag-handle" type="button" draggable="true" data-drag-handle aria-label="Geser urutan ${escapeHtml(habit.name)}" title="Geser untuk mengubah urutan"><i class="fa-solid fa-grip-vertical" aria-hidden="true"></i></button>
             <span class="text-xl">${["🌱", "🍃", "🌼", "🍄", "🪴", "🌿"][index % 6]}</span>
             <span class="min-w-0 flex-1">
               <span class="habit-name block">${escapeHtml(habit.name)}</span>
@@ -827,32 +879,37 @@
         button.addEventListener("click", () => navigate(button.dataset.view));
       });
 
-      const mobileMenuToggle = $("mobile-menu-toggle");
-      const mobileMenuPanel = $("mobile-menu-panel");
-      if (mobileMenuToggle && mobileMenuPanel) {
-        const toggleIcon = mobileMenuToggle.querySelector("i");
-        const closeMobileMenu = () => {
-          mobileMenuPanel.classList.add("hidden");
-          mobileMenuToggle.setAttribute("aria-expanded", "false");
-          if (toggleIcon) toggleIcon.className = "fa-solid fa-bars";
-        };
-        mobileMenuToggle.addEventListener("click", () => {
-          const willOpen = mobileMenuPanel.classList.contains("hidden");
-          mobileMenuPanel.classList.toggle("hidden", !willOpen);
-          mobileMenuToggle.setAttribute("aria-expanded", String(willOpen));
-          if (toggleIcon) toggleIcon.className = willOpen ? "fa-solid fa-xmark" : "fa-solid fa-bars";
-        });
-        mobileMenuPanel.querySelectorAll("[data-view]").forEach(button => {
-          button.addEventListener("click", closeMobileMenu);
-        });
-        document.addEventListener("click", event => {
-          if (!mobileMenuPanel.classList.contains("hidden") &&
-              !mobileMenuPanel.contains(event.target) &&
-              !mobileMenuToggle.contains(event.target)) {
-            closeMobileMenu();
-          }
-        });
-      }
+      const menuToggle = $("menu-toggle");
+      const navDrawer = $("nav-drawer");
+      const navBackdrop = $("nav-backdrop");
+      const drawerClose = $("drawer-close");
+      const openMenu = () => {
+        navDrawer.classList.add("open");
+        navBackdrop.classList.add("open");
+        menuToggle.setAttribute("aria-expanded", "true");
+        navDrawer.setAttribute("aria-hidden", "false");
+        document.body.classList.add("menu-open");
+        drawerClose.focus();
+      };
+      const closeMenu = (returnFocus = false) => {
+        navDrawer.classList.remove("open");
+        navBackdrop.classList.remove("open");
+        menuToggle.setAttribute("aria-expanded", "false");
+        navDrawer.setAttribute("aria-hidden", "true");
+        document.body.classList.remove("menu-open");
+        if (returnFocus) menuToggle.focus();
+      };
+      menuToggle.addEventListener("click", () => {
+        navDrawer.classList.contains("open") ? closeMenu(true) : openMenu();
+      });
+      drawerClose.addEventListener("click", () => closeMenu(true));
+      navBackdrop.addEventListener("click", () => closeMenu(true));
+      navDrawer.querySelectorAll("[data-view]").forEach(button => {
+        button.addEventListener("click", () => closeMenu());
+      });
+      document.addEventListener("keydown", event => {
+        if (event.key === "Escape" && navDrawer.classList.contains("open")) closeMenu(true);
+      });
 
       $("go-checklist").addEventListener("click", () => {
         $("checklist-card").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -1018,6 +1075,116 @@
           renderAll();
           showToast("Kebiasaan dihapus.");
         }
+      });
+
+      const settingsHabitList = $("settings-habit-list");
+      let draggedHabitRow = null;
+      let pointerDrag = null;
+
+      function rowAtPoint(clientX, clientY) {
+        const element = document.elementFromPoint(clientX, clientY);
+        return element ? element.closest("[data-habit-id]") : null;
+      }
+
+      function placeDraggedRow(targetRow, clientY) {
+        if (!draggedHabitRow || !targetRow || targetRow === draggedHabitRow || targetRow.parentElement !== settingsHabitList) return;
+        const targetBox = targetRow.getBoundingClientRect();
+        const insertAfter = clientY > targetBox.top + targetBox.height / 2;
+        settingsHabitList.insertBefore(draggedHabitRow, insertAfter ? targetRow.nextSibling : targetRow);
+      }
+
+      function persistHabitOrder(showMessage = true) {
+        const orderedIds = [...settingsHabitList.querySelectorAll("[data-habit-id]")].map(row => row.dataset.habitId);
+        if (orderedIds.length !== state.habits.length) return;
+        const habitsById = new Map(state.habits.map(habit => [habit.id, habit]));
+        const reordered = orderedIds.map(id => habitsById.get(id)).filter(Boolean);
+        if (reordered.length !== state.habits.length) return;
+        const changed = reordered.some((habit, index) => habit.id !== state.habits[index].id);
+        state.habits = reordered;
+        if (changed) {
+          saveState();
+          renderAll();
+          if (showMessage) showToast("Urutan kebiasaan berhasil disimpan.");
+        } else {
+          renderSettings();
+        }
+      }
+
+      settingsHabitList.addEventListener("dragstart", event => {
+        if (pointerDrag) return event.preventDefault();
+        const handle = event.target.closest("[data-drag-handle]");
+        const row = handle?.closest("[data-habit-id]");
+        if (!row) return event.preventDefault();
+        draggedHabitRow = row;
+        row.classList.add("dragging");
+        event.dataTransfer.effectAllowed = "move";
+        event.dataTransfer.setData("text/plain", row.dataset.habitId);
+        if (event.dataTransfer.setDragImage) event.dataTransfer.setDragImage(row, 24, 24);
+      });
+
+      settingsHabitList.addEventListener("dragover", event => {
+        if (!draggedHabitRow) return;
+        event.preventDefault();
+        event.dataTransfer.dropEffect = "move";
+        placeDraggedRow(event.target.closest("[data-habit-id]"), event.clientY);
+      });
+
+      settingsHabitList.addEventListener("drop", event => {
+        if (draggedHabitRow) event.preventDefault();
+      });
+
+      settingsHabitList.addEventListener("dragend", () => {
+        if (!draggedHabitRow) return;
+        draggedHabitRow.classList.remove("dragging");
+        draggedHabitRow = null;
+        persistHabitOrder();
+      });
+
+      settingsHabitList.addEventListener("pointerdown", event => {
+        const handle = event.target.closest("[data-drag-handle]");
+        if (!handle || event.pointerType === "mouse") return;
+        const row = handle.closest("[data-habit-id]");
+        if (!row) return;
+        event.preventDefault();
+        pointerDrag = { pointerId: event.pointerId, handle, row };
+        draggedHabitRow = row;
+        row.classList.add("dragging");
+        handle.setPointerCapture?.(event.pointerId);
+      });
+
+      settingsHabitList.addEventListener("pointermove", event => {
+        if (!pointerDrag || event.pointerId !== pointerDrag.pointerId) return;
+        event.preventDefault();
+        if (event.clientY < 75) window.scrollBy({ top: -14, behavior: "auto" });
+        else if (event.clientY > window.innerHeight - 75) window.scrollBy({ top: 14, behavior: "auto" });
+        placeDraggedRow(rowAtPoint(event.clientX, event.clientY), event.clientY);
+      });
+
+      function finishPointerDrag(event) {
+        if (!pointerDrag || event.pointerId !== pointerDrag.pointerId) return;
+        pointerDrag.handle.releasePointerCapture?.(event.pointerId);
+        pointerDrag.row.classList.remove("dragging");
+        pointerDrag = null;
+        draggedHabitRow = null;
+        persistHabitOrder();
+      }
+
+      settingsHabitList.addEventListener("pointerup", finishPointerDrag);
+      settingsHabitList.addEventListener("pointercancel", finishPointerDrag);
+
+      settingsHabitList.addEventListener("keydown", event => {
+        const handle = event.target.closest("[data-drag-handle]");
+        if (!handle || !event.altKey || !["ArrowUp", "ArrowDown"].includes(event.key)) return;
+        const row = handle.closest("[data-habit-id]");
+        const sibling = event.key === "ArrowUp" ? row.previousElementSibling : row.nextElementSibling;
+        if (!sibling) return;
+        event.preventDefault();
+        if (event.key === "ArrowUp") settingsHabitList.insertBefore(row, sibling);
+        else settingsHabitList.insertBefore(sibling, row);
+        const movedId = row.dataset.habitId;
+        persistHabitOrder();
+        const movedRow = [...settingsHabitList.querySelectorAll("[data-habit-id]")].find(item => item.dataset.habitId === movedId);
+        movedRow?.querySelector("[data-drag-handle]")?.focus();
       });
 
       $("save-program").addEventListener("click", () => {
