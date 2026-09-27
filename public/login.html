@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Welcome</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100dvh; display: grid; place-items: center;
+      font-family: "Trebuchet MS", sans-serif;
+      background: linear-gradient(145deg, #edf3e4 0%, #e6efdf 45%, #f5f1e4 100%);
+      color: #354b3b;
+    }
+    form {
+      background: rgba(255,255,248,.9); border: 1px solid #dce5d4; border-radius: 20px;
+      padding: 28px; width: min(320px, 90vw); box-shadow: 0 10px 30px rgba(70,94,66,.1);
+    }
+    h1 { font-size: 1.1rem; margin: 0 0 6px; color: #405c48; }
+    p { margin: 0 0 18px; font-size: 13px; color: #80917b; }
+    input {
+      width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid #dce6d4;
+      font-size: 18px; letter-spacing: 4px; text-align: center; background: #fffef9; color: #405c48;
+    }
+    button {
+      margin-top: 14px; width: 100%; border: 0; border-radius: 12px; padding: 12px;
+      background: #405c48; color: white; font-weight: 800; font-size: 15px; cursor: pointer;
+    }
+    button:disabled { opacity: .6; cursor: default; }
+    .error { color: #a15f4e; font-size: 13px; margin-top: 10px; min-height: 16px; }
+  </style>
+</head>
+<body>
+  <form id="login-form" autocomplete="off">
+    <h1>おかえりひろ！👋</h1>
+    <p>今日は一生懸命頑張りましょうね！</p>
+    <p>ピンを必要とします</p>
+    <input type="password" inputmode="numeric" id="pin" name="pin" placeholder="••••" maxlength="12" required autofocus />
+    <button type="submit" id="submit-btn">入る</button>
+    <div class="error" id="error-text"></div>
+  </form>
+
+  <script>
+    const form = document.getElementById("login-form");
+    const pinInput = document.getElementById("pin");
+    const errorText = document.getElementById("error-text");
+    const submitBtn = document.getElementById("submit-btn");
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      errorText.textContent = "";
+      submitBtn.disabled = true;
+      try {
+        const response = await fetch("/api/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pin: pinInput.value })
+        });
+        if (response.ok) {
+          window.location.href = "/";
+          return;
+        }
+        const data = await response.json().catch(() => ({}));
+        errorText.textContent = data.error || "PIN salah.";
+      } catch {
+        errorText.textContent = "Tidak bisa terhubung ke server.";
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

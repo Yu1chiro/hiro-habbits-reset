@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#eaf1df" />
-  <title>Little Forest — Habit Garden</title>
+  <title>おかえり、ひろ</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
@@ -420,7 +420,7 @@
             <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
               <div>
                 <div class="eyebrow mb-1">A map of your growth</div>
-                <h2 class="section-title">Kalender kebiasaan</h2>
+                <h2 class="section-title">Kalender Habits</h2>
                 <p class="text-sm muted mt-1">Pilih tanggal untuk melihat atau mengubah checklist.</p>
               </div>
               <div class="flex items-center gap-2 min-w-0">
@@ -543,7 +543,7 @@
           <div class="forest-card p-5 sm:p-6">
             <div class="eyebrow mb-1">Keep your garden safe</div>
             <h3 class="section-title">Data & cadangan</h3>
-            <p class="text-sm muted mt-1">Data disimpan di localStorage browser pada perangkat ini.</p>
+            <p class="text-sm muted mt-1">Data disimpan aman di database (Neon Postgres), bukan lagi di localStorage browser.</p>
             <div class="flex flex-wrap gap-2 mt-4">
               <button class="secondary-btn" id="export-data"><i class="fa-solid fa-file-arrow-down mr-2"></i>Ekspor JSON</button>
               <label class="secondary-btn inline-flex items-center"><i class="fa-solid fa-file-arrow-up mr-2"></i>Impor JSON<input type="file" id="import-file" accept="application/json,.json" class="hidden" /></label>
@@ -612,35 +612,49 @@
         };
       }
 
-      function loadState() {
+      async function loadState() {
         try {
-          const raw = localStorage.getItem(STORAGE_KEY);
-          if (!raw) return freshState();
-          const parsed = JSON.parse(raw);
-          if (!parsed || !Array.isArray(parsed.habits) || !parsed.records || !parsed.reflections) return freshState();
+          const response = await fetch("/api/state", { credentials: "same-origin" });
+          if (response.status === 401) {
+            window.location.href = "/login";
+            return freshState();
+          }
+          if (!response.ok) throw new Error("Gagal memuat data");
+          const { data } = await response.json();
+          if (!data || !Array.isArray(data.habits) || !data.records || !data.reflections) return freshState();
           return {
             ...freshState(),
-            ...parsed,
-            duration: Math.min(365, Math.max(1, Number(parsed.duration) || 30)),
-            habits: parsed.habits.filter(h => h && typeof h.id === "string" && typeof h.name === "string"),
-            records: parsed.records,
-            reflections: parsed.reflections
+            ...data,
+            duration: Math.min(365, Math.max(1, Number(data.duration) || 30)),
+            habits: data.habits.filter(h => h && typeof h.id === "string" && typeof h.name === "string"),
+            records: data.records,
+            reflections: data.reflections
           };
         } catch {
           return freshState();
         }
       }
 
-      let state = loadState();
+      let state = freshState();
       let selectedDate = localDateKey();
       let calendarMonth = dateFromKey(selectedDate);
       let toastTimer = null;
 
-      function saveState() {
+      async function saveState() {
         try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+          const response = await fetch("/api/state", {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(state)
+          });
+          if (response.status === 401) {
+            window.location.href = "/login";
+            return;
+          }
+          if (!response.ok) throw new Error("Gagal menyimpan data");
         } catch {
-          showToast("Penyimpanan browser penuh atau tidak tersedia.");
+          showToast("Gagal menyimpan data ke database.");
         }
       }
 
@@ -1255,6 +1269,10 @@
 
       $("footer-year").textContent = new Date().getFullYear();
       renderAll();
+      (async () => {
+        state = await loadState();
+        renderAll();
+      })();
       setInterval(renderClock, 30000);
     })();
   </script>

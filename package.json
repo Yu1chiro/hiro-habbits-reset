@@ -1,5 +1,30 @@
 {
   "dependencies": {
-    "express": "^5.2.1"
-  }
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^18.0.4",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.7.0",
+    "jsonwebtoken": "^9.0.3",
+    "pg": "^8.23.0"
+  },
+  "name": "hiro-habbit-reset",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Yu1chiro/hiro-habbits-reset.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Yu1chiro/hiro-habbits-reset/issues"
+  },
+  "homepage": "https://github.com/Yu1chiro/hiro-habbits-reset#readme"
 }
