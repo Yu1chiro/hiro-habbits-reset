@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#eaf1df" />
-  <title>おかえり、ひろ</title>
+  <title>おかえり、ひろ！</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
@@ -107,6 +107,10 @@
     .view { display: none; animation: appear .24s ease-out; }
     .view.active { display: block; }
     @keyframes appear { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+
+    .journal-slide-replay { animation: journalSlideIn .22s ease; }
+    @keyframes journalSlideIn { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: none; } }
+    #journal-modal-card { touch-action: pan-y; }
 
     .hero {
       position: relative; overflow: hidden;
@@ -307,7 +311,7 @@
       <div class="flex items-center gap-3 min-w-0">
         <div class="w-12 h-12 shrink-0 rounded-2xl bg-[#e3edd9] grid place-items-center text-2xl">🌱</div>
         <div class="min-w-0">
-          <div class="font-black text-xl text-forest leading-tight truncate">Little Forest</div>
+          <div class="font-black text-xl text-forest leading-tight truncate">Hiro Gpace Growth</div>
           <div class="text-xs muted font-bold">your tiny habit garden</div>
         </div>
       </div>
@@ -328,7 +332,7 @@
       <p class="font-black text-sm text-forest">Pelan-pelan juga tumbuh.</p>
       <p class="text-xs muted mt-1 leading-relaxed">Kamu tidak harus sempurna setiap hari. Cukup kembali dan mulai lagi.</p>
     </div>
-    <div class="text-xs muted font-bold mt-5 text-center">Data tersimpan di browser ini</div>
+    <div class="text-xs muted font-bold mt-5 text-center">Data has been saved</div>
   </aside>
 
   <div class="app-shell">
@@ -348,8 +352,8 @@
           <div class="hero forest-card p-6 sm:p-8 mb-5">
             <div class="relative z-10 max-w-xl">
               <div class="pill bg-white/70 mb-4"><i class="fa-solid fa-sun"></i><span id="today-label">Hari ini</span></div>
-              <h2 class="text-2xl sm:text-3xl font-black text-forest leading-tight">Selalu Maksimalkan dan<br />Bersyukur</h2>
-              <p class="mt-3 text-sm sm:text-base text-[#657c5e] max-w-md">Serius Pada Proses dan Ketenanganmu 🌟</p>
+            <h2 class="text-2xl sm:text-3xl font-black text-forest leading-tight">Serius Pada Proses dan<br />Ketenanganmu 🌟</h2>
+              <p class="mt-3 text-sm sm:text-base text-[#657c5e] max-w-md">Selalu maksimalkan dan bersyukur.</p>
               <div class="mt-5 flex flex-wrap items-center gap-3">
                 <button class="primary-btn" id="go-checklist"><i class="fa-solid fa-leaf mr-2"></i>Mulai checklist</button>
                 <span class="text-xs font-extrabold text-[#74896b]">🌼 Hari baru, kesempatan baru</span>
@@ -420,7 +424,7 @@
             <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
               <div>
                 <div class="eyebrow mb-1">A map of your growth</div>
-                <h2 class="section-title">Kalender Habits</h2>
+                <h2 class="section-title">Kalender kebiasaan</h2>
                 <p class="text-sm muted mt-1">Pilih tanggal untuk melihat atau mengubah checklist.</p>
               </div>
               <div class="flex items-center gap-2 min-w-0">
@@ -561,6 +565,25 @@
   </div>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <div class="fixed inset-0 z-[60] hidden items-center justify-center p-4" id="journal-modal" role="dialog" aria-modal="true" aria-labelledby="journal-modal-date">
+    <div class="absolute inset-0 bg-[#2c3b2a]/40 backdrop-blur-sm" id="journal-modal-backdrop"></div>
+    <div class="relative w-full max-w-md forest-card p-5 sm:p-6 select-none" id="journal-modal-card">
+      <button type="button" class="absolute top-4 right-4 text-[#80917b] hover:text-forest" id="journal-modal-close" aria-label="Tutup">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+      <div id="journal-modal-body">
+        <div class="eyebrow mb-1">Jejak catatan</div>
+        <h3 class="section-title pr-8" id="journal-modal-date"></h3>
+        <p class="text-sm text-[#687d62] whitespace-pre-wrap break-words mt-4 max-h-[50vh] overflow-y-auto" id="journal-modal-text"></p>
+      </div>
+      <div class="flex items-center justify-between gap-3 mt-6">
+        <button type="button" class="secondary-btn !px-4" id="journal-modal-prev" aria-label="Catatan sebelumnya"><i class="fa-solid fa-chevron-left"></i></button>
+        <span class="text-xs font-black text-[#80917b]" id="journal-modal-position"></span>
+        <button type="button" class="secondary-btn !px-4" id="journal-modal-next" aria-label="Catatan berikutnya"><i class="fa-solid fa-chevron-right"></i></button>
+      </div>
+    </div>
+  </div>
 
   <script>
     (() => {
@@ -836,10 +859,14 @@
         }).join("") : `<p class="text-sm muted">Tambahkan kebiasaan untuk melihat statistik.</p>`;
       }
 
+      let journalEntries = [];
+      let journalModalIndex = 0;
+
       function renderJournal() {
         const entries = Object.entries(state.reflections)
           .filter(([, text]) => typeof text === "string" && text.trim())
           .sort(([a], [b]) => b.localeCompare(a));
+        journalEntries = entries;
         $("journal-count").textContent = `${entries.length} catatan`;
         $("journal-history").innerHTML = entries.length ? entries.map(([key, text]) => `
           <article class="soft-card p-4">
@@ -1017,14 +1044,73 @@
         $("journal-text").value = "";
       });
 
+      function renderJournalModal() {
+        const entry = journalEntries[journalModalIndex];
+        if (!entry) return closeJournalModal();
+        const [key, text] = entry;
+        $("journal-modal-date").textContent = prettyDate(key);
+        $("journal-modal-text").textContent = text;
+        $("journal-modal-position").textContent = `${journalModalIndex + 1} / ${journalEntries.length}`;
+        const singleEntry = journalEntries.length <= 1;
+        $("journal-modal-prev").disabled = singleEntry;
+        $("journal-modal-next").disabled = singleEntry;
+        const body = $("journal-modal-body");
+        body.classList.remove("journal-slide-replay");
+        void body.offsetWidth;
+        body.classList.add("journal-slide-replay");
+      }
+
+      function openJournalModal(key) {
+        const index = journalEntries.findIndex(([entryKey]) => entryKey === key);
+        if (index === -1) return;
+        journalModalIndex = index;
+        renderJournalModal();
+        $("journal-modal").classList.remove("hidden");
+        $("journal-modal").classList.add("flex");
+      }
+
+      function closeJournalModal() {
+        $("journal-modal").classList.add("hidden");
+        $("journal-modal").classList.remove("flex");
+      }
+
+      function stepJournalModal(delta) {
+        if (journalEntries.length < 2) return;
+        journalModalIndex = (journalModalIndex + delta + journalEntries.length) % journalEntries.length;
+        renderJournalModal();
+      }
+
+      $("journal-modal-close").addEventListener("click", closeJournalModal);
+      $("journal-modal-backdrop").addEventListener("click", closeJournalModal);
+      $("journal-modal-prev").addEventListener("click", () => stepJournalModal(-1));
+      $("journal-modal-next").addEventListener("click", () => stepJournalModal(1));
+
+      document.addEventListener("keydown", event => {
+        if ($("journal-modal").classList.contains("hidden")) return;
+        if (event.key === "Escape") closeJournalModal();
+        else if (event.key === "ArrowLeft") stepJournalModal(-1);
+        else if (event.key === "ArrowRight") stepJournalModal(1);
+      });
+
+      let journalSwipeStartX = null;
+      const journalModalCard = $("journal-modal-card");
+      journalModalCard.addEventListener("pointerdown", event => {
+        journalSwipeStartX = event.clientX;
+      });
+      journalModalCard.addEventListener("pointerup", event => {
+        if (journalSwipeStartX === null) return;
+        const delta = event.clientX - journalSwipeStartX;
+        journalSwipeStartX = null;
+        if (Math.abs(delta) < 40) return;
+        stepJournalModal(delta > 0 ? -1 : 1);
+      });
+      journalModalCard.addEventListener("pointercancel", () => { journalSwipeStartX = null; });
+
       $("journal-history").addEventListener("click", event => {
         const edit = event.target.closest("[data-edit-journal]");
         const remove = event.target.closest("[data-delete-journal]");
         if (edit) {
-          const key = edit.dataset.editJournal;
-          $("journal-date").value = key;
-          $("journal-text").value = state.reflections[key] || "";
-          $("journal-date").scrollIntoView({ behavior: "smooth", block: "center" });
+          openJournalModal(edit.dataset.editJournal);
         }
         if (remove) {
           const key = remove.dataset.deleteJournal;
